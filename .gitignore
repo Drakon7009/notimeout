@@ -1,0 +1,12 @@
+.gradle/
+build/
+.vscode/
+
+*.log
+*.tmp
+*.bak
+*.class
+
+run/
+runs/
+out/

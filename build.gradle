@@ -1,35 +1,23 @@
 plugins {
     id 'java-library'
-    id 'net.neoforged.moddev' version '2.0.148'
+    id 'net.neoforged.moddev' version '2.0.140'
 }
 
-def targetMinecraft = providers.gradleProperty('targetMinecraft').getOrElse('1.21.1')
-def targets = [
-        '1.21.1': [neoForge: '21.1.267', neoForgeRange: '[21.1,21.2)', loaderRange: '[4,)', java: 21],
-        '26.3'  : [neoForge: '26.3.0.115', neoForgeRange: '[26.3.0,26.3.1)', loaderRange: '[12,)', java: 25]
-]
-def target = targets[targetMinecraft]
-if (target == null) {
-    throw new GradleException("Unsupported Minecraft version: ${targetMinecraft}. Choose from ${targets.keySet()}.")
-}
-
-version = "${targetMinecraft}-${mod_version}"
+version = mod_version
 group = mod_group_id
 
 base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(target.java)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = target.neoForge
+    version = neo_version
 
-    if (targetMinecraft == '1.21.1') {
-        parchment {
-            minecraftVersion = targetMinecraft
-            mappingsVersion = parchment_mappings_version
-        }
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
     }
 
     runs {
@@ -54,13 +42,15 @@ sourceSets.main.resources.srcDir 'src/generated/resources'
 
 tasks.withType(ProcessResources).configureEach {
     def replaceProperties = [
-            minecraft_version_range: "[${targetMinecraft}]",
-            neo_version_range      : target.neoForgeRange,
-            loader_version_range   : target.loaderRange,
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,
-            mod_version            : project.version,
+            mod_version            : mod_version,
             mod_authors            : mod_authors,
             mod_description        : mod_description
     ]
@@ -68,14 +58,6 @@ tasks.withType(ProcessResources).configureEach {
 
     filesMatching(['META-INF/neoforge.mods.toml']) {
         expand replaceProperties
-    }
-
-    inputs.property 'mixinJavaVersion', target.java
-    filesMatching('notimeout.mixins.json') {
-        expand java_version: target.java
-    }
-    if (targetMinecraft == '26.3') {
-        exclude 'pack.mcmeta'
     }
 }
 
